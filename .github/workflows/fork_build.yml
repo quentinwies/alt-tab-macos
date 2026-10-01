@@ -30,12 +30,16 @@ jobs:
       - name: Unit tests
         run: set -o pipefail && xcodebuild test -project alt-tab-macos.xcodeproj -scheme Test -configuration Debug -derivedDataPath DerivedData | scripts/xcbeautify
       - name: Build
-        # Signing overrides go in local.xcconfig, which only the app target includes: passed on the command
-        # line they also reach the SPM package targets, which then demand a development team.
+        # Overrides go in local.xcconfig, which only the app target includes: passed on the command line they
+        # also reach the SPM package targets, which then demand a development team. CURRENT_PROJECT_VERSION
+        # fills CFBundleVersion, which `App.version` force-unwraps at launch; it is the upstream version the
+        # fork is based on, from the top of changelog.md.
         run: |
-          printf 'CODE_SIGN_IDENTITY = Local Self-Signed\nOTHER_CODE_SIGN_FLAGS = --deep --options runtime\n' > config/local.xcconfig
+          version=$(grep -m1 -oE '^#+ \[?[0-9]+\.[0-9]+\.[0-9]+' changelog.md | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+          printf 'CODE_SIGN_IDENTITY = Local Self-Signed\nOTHER_CODE_SIGN_FLAGS = --deep --options runtime\nCURRENT_PROJECT_VERSION = %s\n' "$version" > config/local.xcconfig
           set -o pipefail && xcodebuild -project alt-tab-macos.xcodeproj -scheme Release -derivedDataPath DerivedData | scripts/xcbeautify
           lipo -info DerivedData/Build/Products/Release/AltTab.app/Contents/MacOS/AltTab
+          plutil -extract CFBundleVersion raw DerivedData/Build/Products/Release/AltTab.app/Contents/Info.plist
           codesign --verify --deep --strict DerivedData/Build/Products/Release/AltTab.app
           ditto -c -k --keepParent DerivedData/Build/Products/Release/AltTab.app AltTab.zip
       - uses: actions/upload-artifact@v4
