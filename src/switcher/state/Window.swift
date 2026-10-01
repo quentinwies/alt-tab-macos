@@ -376,8 +376,9 @@ class Window {
             let targetMaybeCrossSpace = !self.spaceIds.isEmpty && !self.spaceIds.contains(originSpaceId)
             let originFrontPid = targetMaybeCrossSpace
                 ? NSWorkspace.shared.frontmostApplication.flatMap(Applications.knownPid) : nil
+            let frontMode = frontProcessMode()
             BackgroundWork.accessibilityCommandsQueue.addOperation { [weak self] in
-                self?.applyFocus(generation, originSpaceId, originFrontPid)
+                self?.applyFocus(generation, originSpaceId, originFrontPid, frontMode)
             }
         }
     }
@@ -401,7 +402,8 @@ class Window {
     /// timeout, so a second alt-tab starts a second operation while this one is still inside a step. Each step
     /// is therefore skipped once a newer focus exists, and a superseded operation that already moved the
     /// z-order re-asserts the newer intent on its way out — see FocusIntentPolicySpecs.md.
-    private func applyFocus(_ generation: FocusGeneration, _ originSpaceId: CGSSpaceID, _ originFrontPid: pid_t?) {
+    private func applyFocus(_ generation: FocusGeneration, _ originSpaceId: CGSSpaceID, _ originFrontPid: pid_t?,
+                            _ frontMode: SLPSMode.RawValue) {
         guard FocusIntents.shared.mayProceed(generation) else { return }
         #if DEBUG
         if FocusIntents.shared.consumeRefusalForQa() { return refusedForQa() }
@@ -417,7 +419,7 @@ class Window {
         guard FocusIntents.shared.mayProceed(generation) else { return }
         var psn = ProcessSerialNumber()
         GetProcessForPID(application.pid, &psn)
-        _SLPSSetFrontProcessWithOptions(&psn, cgWindowId!, SLPSMode.userGenerated.rawValue)
+        _SLPSSetFrontProcessWithOptions(&psn, cgWindowId!, frontMode)
         FocusIntents.shared.noteReordered(generation)
         makeKeyAndRaise(generation, &psn)
         restoreOriginSpaceFront(originSpaceId, originFrontPid)
@@ -427,6 +429,13 @@ class Window {
         DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(50)) {
             WindowThumbnails.previewSelectedIfNeeded()
         }
+    }
+
+    /// An app grouped per-app (`AppGroupingResolverSpecs.md`) is fronted like ⌘⇥ does: `allWindows` raises
+    /// every window of the process, and `makeKeyAndRaise` then puts this one on top.
+    private func frontProcessMode() -> SLPSMode.RawValue {
+        let groups = AppGroupingResolver.isListed(application.bundleIdentifier, groupedBundleIds: Preferences.groupedAppBundleIds)
+        return groups ? SLPSMode.userGenerated.rawValue | SLPSMode.allWindows.rawValue : SLPSMode.userGenerated.rawValue
     }
 
     private func hearWhereFocusLanded() {

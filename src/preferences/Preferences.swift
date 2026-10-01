@@ -114,6 +114,7 @@ class Preferences {
     static var hideStatusIcons: Bool { CachedUserDefaults.bool("hideStatusIcons") }
     static var startAtLogin: Bool { CachedUserDefaults.bool("startAtLogin") }
     static var exceptions: [ExceptionEntry] { CachedUserDefaults.json("exceptions", [ExceptionEntry].self) }
+    static var groupedAppBundleIds: [String] { exceptions.filter { $0.groupWindows }.map { $0.bundleIdentifier } }
     static var previewSelectedWindow: Bool { CachedUserDefaults.bool("previewFocusedWindow") }
     static var captureWindowsInBackground: Bool { CachedUserDefaults.bool("captureWindowsInBackground") }
     static var screenRecordingPermissionSkipped: Bool { CachedUserDefaults.bool("screenRecordingPermissionSkipped") }
@@ -385,7 +386,7 @@ class Preferences {
 
     static func defaultExceptions() -> String {
         return jsonEncode([
-            ExceptionEntry(bundleIdentifier: "com.apple.finder", hide: .whenNoOpenWindow, ignore: .none),
+            ExceptionEntry(bundleIdentifier: "com.apple.finder", hide: .whenNoOpenWindow, ignore: .none, groupWindows: true),
             ExceptionEntry(bundleIdentifier: "com.apple.ScreenSharing", hide: .none, ignore: .whenFullscreen),
             ExceptionEntry(bundleIdentifier: "com.microsoft.rdc.macos", hide: .none, ignore: .whenFullscreen),
             ExceptionEntry(bundleIdentifier: "com.teamviewer.TeamViewer", hide: .none, ignore: .whenFullscreen),
@@ -535,12 +536,14 @@ struct ExceptionEntry: Codable {
     var hide: ExceptionHidePreference
     var ignore: ExceptionIgnorePreference
     var windowTitleContains: [String]?
+    var groupWindows: Bool
 
-    init(bundleIdentifier: String, hide: ExceptionHidePreference, ignore: ExceptionIgnorePreference, windowTitleContains: [String]? = nil) {
+    init(bundleIdentifier: String, hide: ExceptionHidePreference, ignore: ExceptionIgnorePreference, windowTitleContains: [String]? = nil, groupWindows: Bool = false) {
         self.bundleIdentifier = bundleIdentifier
         self.hide = hide
         self.ignore = ignore
         self.windowTitleContains = windowTitleContains
+        self.groupWindows = groupWindows
     }
 
     // Permissive decoder so we can read both the legacy single-string shape
@@ -559,5 +562,6 @@ struct ExceptionEntry: Codable {
         } else {
             self.windowTitleContains = nil
         }
+        self.groupWindows = (try? c.decodeIfPresent(Bool.self, forKey: .groupWindows)) ?? false
     }
 }

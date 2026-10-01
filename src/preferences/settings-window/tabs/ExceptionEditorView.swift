@@ -14,6 +14,7 @@ class ExceptionEditorView: NSView {
     private let bundleIdField = NSTextField(string: "")
     private let hideDropdown = PopupButtonLikeSystemSettings()
     private let ignoreDropdown = PopupButtonLikeSystemSettings()
+    private let groupSwitch = Switch()
     private var patternsRow: NSView?
     private var patternsListStack = NSStackView()
 
@@ -90,6 +91,7 @@ class ExceptionEditorView: NSView {
         let hideRow = makeHideRow()
         let patternsRow = makePatternsRow()
         let ignoreRow = makeIgnoreRow()
+        let groupRow = makeGroupRow()
         self.patternsRow = patternsRow
 
         addToGroup(rows, view: bundleRow, addSeparator: false)
@@ -98,6 +100,7 @@ class ExceptionEditorView: NSView {
         patternsRow.leadingAnchor.constraint(equalTo: rows.leadingAnchor).isActive = true
         patternsRow.trailingAnchor.constraint(equalTo: rows.trailingAnchor).isActive = true
         addToGroup(rows, view: ignoreRow, addSeparator: true)
+        addToGroup(rows, view: groupRow, addSeparator: true)
 
         // An NSBox painted behind the rows draws the rounded card. Its `fillColor`/`borderColor`
         // are dynamic NSColors, so AppKit re-resolves them for Dark/Light on every redraw on its
@@ -185,6 +188,14 @@ class ExceptionEditorView: NSView {
         ignoreDropdown.target = self
         ignoreDropdown.action = #selector(ignoreChanged(_:))
         return makeRow(label: label, control: ignoreDropdown)
+    }
+
+    private func makeGroupRow() -> NSView {
+        let label = makeRowLabel(NSLocalizedString("Group windows", comment: ""))
+        groupSwitch.translatesAutoresizingMaskIntoConstraints = false
+        groupSwitch.target = self
+        groupSwitch.action = #selector(groupChanged(_:))
+        return makeRow(label: label, control: groupSwitch)
     }
 
     private func makePatternsRow() -> NSView {
@@ -290,6 +301,7 @@ class ExceptionEditorView: NSView {
         if ignoreIndex >= 0, ignoreIndex < ignoreDropdown.numberOfItems {
             ignoreDropdown.selectItem(at: ignoreIndex)
         }
+        groupSwitch.setSilently(entry.groupWindows ? .on : .off)
         rebuildPatternsList()
         updatePatternsVisibility()
         // Header icon/name only refresh if bundle ID actually changed since last resolution.
@@ -338,6 +350,11 @@ class ExceptionEditorView: NSView {
             entry.ignore = ExceptionIgnorePreference.allCases[i]
             emitChange()
         }
+    }
+
+    @objc private func groupChanged(_ sender: NSButton) {
+        entry.groupWindows = sender.state == .on
+        emitChange()
     }
 
     @objc private func addPatternTapped() {

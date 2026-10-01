@@ -349,6 +349,9 @@ class ExceptionsTab {
         if entry.ignore != .none {
             parts.append(NSLocalizedString("Ignore shortcuts", comment: ""))
         }
+        if entry.groupWindows {
+            parts.append(NSLocalizedString("Group windows", comment: ""))
+        }
         return parts.joined(separator: " • ")
     }
 

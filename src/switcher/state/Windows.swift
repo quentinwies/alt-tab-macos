@@ -126,9 +126,13 @@ class Windows {
     }
 
     static func refreshWhichWindowsToShowTheUser() {
-        guard Preferences.showsOneWindowPerApp() else { return }
+        let oneWindowPerApp = Preferences.showsOneWindowPerApp()
+        let groupedBundleIds = Preferences.groupedAppBundleIds
+        guard oneWindowPerApp || !groupedBundleIds.isEmpty else { return }
         let current = AttentionEngine.currentUserContext
         for (pid, windows) in Dictionary(grouping: list, by: { $0.application.pid }) {
+            guard AppGroupingResolver.showsOneTile(windows[0].application.bundleIdentifier,
+                oneWindowPerApp: oneWindowPerApp, groupedBundleIds: groupedBundleIds) else { continue }
             let eligible = windows.filter { $0.shouldShowTheUser }
             let currentWid = current.pid == pid ? current.wid : nil
             let lastAttendedWid = AttentionEngine.lastAttendedWindow(pid)

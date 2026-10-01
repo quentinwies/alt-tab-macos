@@ -117,6 +117,9 @@
 		5E0DE2A0000000000000D002 /* WindowOrderResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0DE2A0000000000000D001 /* WindowOrderResolver.swift */; };
 		5E0DE2A0000000000000D003 /* WindowOrderResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0DE2A0000000000000D001 /* WindowOrderResolver.swift */; };
 		5E0DE2A0000000000000D102 /* WindowOrderResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E0DE2A0000000000000D101 /* WindowOrderResolverTests.swift */; };
+		5EA990000000000000000002 /* AppGroupingResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA990000000000000000001 /* AppGroupingResolver.swift */; };
+		5EA990000000000000000003 /* AppGroupingResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA990000000000000000001 /* AppGroupingResolver.swift */; };
+		5EA990000000000000000102 /* AppGroupingResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5EA990000000000000000101 /* AppGroupingResolverTests.swift */; };
 		5E7AB00000000000000D2002 /* TabGroupResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7AB00000000000000D2001 /* TabGroupResolver.swift */; };
 		5E7AB00000000000000D2003 /* TabGroupResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7AB00000000000000D2001 /* TabGroupResolver.swift */; };
 		5E7AB00000000000000D2102 /* TabGroupResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E7AB00000000000000D2101 /* TabGroupResolverTests.swift */; };
@@ -571,6 +574,8 @@
 		5E7C0F70000000000000E101 /* ExceptionMatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExceptionMatcherTests.swift; sourceTree = "<group>"; };
 		5E0DE2A0000000000000D001 /* WindowOrderResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowOrderResolver.swift; sourceTree = "<group>"; };
 		5E0DE2A0000000000000D101 /* WindowOrderResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowOrderResolverTests.swift; sourceTree = "<group>"; };
+		5EA990000000000000000001 /* AppGroupingResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupingResolver.swift; sourceTree = "<group>"; };
+		5EA990000000000000000101 /* AppGroupingResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupingResolverTests.swift; sourceTree = "<group>"; };
 		5E7AB00000000000000D2001 /* TabGroupResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabGroupResolver.swift; sourceTree = "<group>"; };
 		5E7AB00000000000000D2101 /* TabGroupResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabGroupResolverTests.swift; sourceTree = "<group>"; };
 		5EC0DE00000000000000A101 /* RealWorldScenariosTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealWorldScenariosTests.swift; sourceTree = "<group>"; };
@@ -1219,6 +1224,7 @@
 				5F117E41000000000000F001 /* PhantomWindowDetector.swift */,
 				5E7C0F70000000000000E001 /* ExceptionMatcher.swift */,
 				5E0DE2A0000000000000D001 /* WindowOrderResolver.swift */,
+				5EA990000000000000000001 /* AppGroupingResolver.swift */,
 				5E7AB00000000000000D2001 /* TabGroupResolver.swift */,
 				5E7AB00000000000000D2101 /* TabGroupResolverTests.swift */,
 				5EC0DE00000000000000A101 /* RealWorldScenariosTests.swift */,
@@ -1238,6 +1244,7 @@
 				5F117E41000000000000F101 /* PhantomWindowDetectorTests.swift */,
 				5E7C0F70000000000000E101 /* ExceptionMatcherTests.swift */,
 				5E0DE2A0000000000000D101 /* WindowOrderResolverTests.swift */,
+				5EA990000000000000000101 /* AppGroupingResolverTests.swift */,
 				5E1EC110000000000000C101 /* SelectionResolverTests.swift */,
 			);
 			path = state;
@@ -2254,6 +2261,8 @@
 				5E7C0F70000000000000E102 /* ExceptionMatcherTests.swift in Sources */,
 				5E0DE2A0000000000000D003 /* WindowOrderResolver.swift in Sources */,
 				5E0DE2A0000000000000D102 /* WindowOrderResolverTests.swift in Sources */,
+				5EA990000000000000000003 /* AppGroupingResolver.swift in Sources */,
+				5EA990000000000000000102 /* AppGroupingResolverTests.swift in Sources */,
 				5E7AB00000000000000D2003 /* TabGroupResolver.swift in Sources */,
 				5E7AB00000000000000D2102 /* TabGroupResolverTests.swift in Sources */,
 				5EC0DE00000000000000A102 /* RealWorldScenariosTests.swift in Sources */,
@@ -2354,6 +2363,7 @@
 				5F5790DE7EC7000000000B02 /* PreferencesPersistenceCheck.swift in Sources */,
 				5E7C0F70000000000000E002 /* ExceptionMatcher.swift in Sources */,
 				5E0DE2A0000000000000D002 /* WindowOrderResolver.swift in Sources */,
+				5EA990000000000000000002 /* AppGroupingResolver.swift in Sources */,
 				5E7AB00000000000000D2002 /* TabGroupResolver.swift in Sources */,
 				5EF0C000000000000000F102 /* FocusIntentPolicy.swift in Sources */,
 				5E2A571E000000000000A002 /* WindowState.swift in Sources */,
