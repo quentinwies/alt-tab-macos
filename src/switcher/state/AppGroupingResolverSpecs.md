@@ -28,6 +28,9 @@ so a grouped app and the global mode pick the same window.
 - Only listed apps raise all their windows on focus. The global "one window per app" mode keeps raising the
   representative window only.
 - Grouping applies to windows which passed the filters; a hidden or filtered window stays hidden.
+- A listed app's tile shows the app icon instead of a window thumbnail, and the app name as its title
+  (`Window.isGroupedAppTile`, read by `TileView`): the tile stands for the app, not for the window it
+  represents. Search highlights the app-name match only.
 
 ## Test scenarios
 

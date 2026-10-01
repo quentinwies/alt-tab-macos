@@ -432,9 +432,14 @@ class Window {
         }
     }
 
+    /// This window stands for its whole app: the app has "Group windows" on (`AppGroupingResolverSpecs.md`).
+    var isGroupedAppTile: Bool {
+        AppGroupingResolver.isListed(application.bundleIdentifier, groupedBundleIds: Preferences.groupedAppBundleIds)
+    }
+
     /// For an app grouped per-app, its other windows in `AppGroupingResolver.raiseOrder`; empty otherwise.
     private func groupSiblingsToRaise() -> [AXUIElement] {
-        guard AppGroupingResolver.isListed(application.bundleIdentifier, groupedBundleIds: Preferences.groupedAppBundleIds) else { return [] }
+        guard isGroupedAppTile else { return [] }
         let siblings = Windows.list.filter { $0.application.pid == application.pid && $0 !== self && $0.axUiElement != nil }
         let visibleSpaces = Set(Spaces.visibleSpaces)
         let order = AppGroupingResolver.raiseOrder(siblings.map {

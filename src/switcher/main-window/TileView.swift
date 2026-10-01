@@ -298,12 +298,13 @@ class TileView: FlippedView {
             }())
         )
         if !thumbnail.isHidden {
-            if let screenshot = element.thumbnail {
+            let showsAppIcon = element.isGroupedAppTile
+            if let screenshot = element.thumbnail, !showsAppIcon {
                 thumbnail.contentsGravity = .resize
                 let thumbnailSize = TileView.thumbnailSize(element.size, false)
                 thumbnail.updateContents(screenshot, thumbnailSize)
             } else {
-                let reservesWindowGeometry = ThumbnailPlaceholderLayout.reservesWindowGeometry(
+                let reservesWindowGeometry = !showsAppIcon && ThumbnailPlaceholderLayout.reservesWindowGeometry(
                     element.size, screenRecordingGranted: ScreenRecordingPermission.status == .granted)
                 thumbnail.contentsGravity = reservesWindowGeometry ? .resizeAspect : .resize
                 let sourceSize = reservesWindowGeometry ? element.size : element.icon?.size()
@@ -396,6 +397,9 @@ class TileView: FlippedView {
         func range(_ span: Range<Int>?, offsetBy offset: Int = 0) -> [NSRange] {
             guard let span else { return [] }
             return [NSRange(location: offset + span.lowerBound, length: span.count)]
+        }
+        if window_?.isGroupedAppTile == true {
+            return range(window_?.swAppMatchSpan)
         }
         switch Preferences.showTitles {
         case .appName:
@@ -590,7 +594,7 @@ class TileView: FlippedView {
     private func getAppOrAndWindowTitle() -> String {
         let appName = window_?.application.localizedName
         let windowTitle = window_?.title
-        if Preferences.showTitles == .appName {
+        if Preferences.showTitles == .appName || window_?.isGroupedAppTile == true {
             return appName ?? ""
         } else if Preferences.showTitles == .appNameAndWindowTitle {
             if appName == windowTitle {
