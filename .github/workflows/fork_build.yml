@@ -1,0 +1,42 @@
+# Builds this fork's AltTab.app (universal: Intel + Apple Silicon) and attaches it to the run as an artifact.
+# Upstream's ci_cd.yml needs upstream's Developer ID and secrets; this workflow signs with a self-signed
+# "Local Self-Signed" certificate instead. Keep that certificate stable (secrets below): macOS ties the
+# Accessibility / Screen Recording grants to the signature, so a new certificate per build would ask again.
+name: Fork build
+on:
+  push:
+    branches:
+      - main
+      - finder-grouping
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v6
+      - run: sudo xcode-select -s /Applications/Xcode_26.0.1.app/Contents/Developer
+      - name: Import signing certificate
+        env:
+          LOCAL_SIGNING_P12: ${{ secrets.LOCAL_SIGNING_P12 }}
+          LOCAL_SIGNING_P12_PASSWORD: ${{ secrets.LOCAL_SIGNING_P12_PASSWORD }}
+        run: |
+          if [[ -n "$LOCAL_SIGNING_P12" ]]; then
+            echo "$LOCAL_SIGNING_P12" | base64 --decode > codesign.p12
+            scripts/codesign/import_certificate_into_new_keychain.sh codesign "$LOCAL_SIGNING_P12_PASSWORD"
+          else
+            echo "::warning::No LOCAL_SIGNING_P12 secret: signing with a throwaway certificate, so macOS will ask for permissions again"
+            scripts/codesign/setup_ci_pr.sh
+          fi
+      - name: Unit tests
+        run: set -o pipefail && xcodebuild test -project alt-tab-macos.xcodeproj -scheme Test -configuration Debug -derivedDataPath DerivedData | scripts/xcbeautify
+      - name: Build
+        run: |
+          set -o pipefail && xcodebuild -project alt-tab-macos.xcodeproj -scheme Release -derivedDataPath DerivedData \
+            CODE_SIGN_IDENTITY="Local Self-Signed" OTHER_CODE_SIGN_FLAGS="--deep --options runtime" | scripts/xcbeautify
+          lipo -info DerivedData/Build/Products/Release/AltTab.app/Contents/MacOS/AltTab
+          codesign --verify --deep --strict DerivedData/Build/Products/Release/AltTab.app
+          ditto -c -k --keepParent DerivedData/Build/Products/Release/AltTab.app AltTab.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AltTab
+          path: AltTab.zip
