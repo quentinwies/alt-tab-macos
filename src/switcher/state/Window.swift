@@ -376,9 +376,9 @@ class Window {
             let targetMaybeCrossSpace = !self.spaceIds.isEmpty && !self.spaceIds.contains(originSpaceId)
             let originFrontPid = targetMaybeCrossSpace
                 ? NSWorkspace.shared.frontmostApplication.flatMap(Applications.knownPid) : nil
-            let frontMode = frontProcessMode()
+            let siblings = groupSiblingsToRaise()
             BackgroundWork.accessibilityCommandsQueue.addOperation { [weak self] in
-                self?.applyFocus(generation, originSpaceId, originFrontPid, frontMode)
+                self?.applyFocus(generation, originSpaceId, originFrontPid, siblings)
             }
         }
     }
@@ -403,7 +403,7 @@ class Window {
     /// is therefore skipped once a newer focus exists, and a superseded operation that already moved the
     /// z-order re-asserts the newer intent on its way out — see FocusIntentPolicySpecs.md.
     private func applyFocus(_ generation: FocusGeneration, _ originSpaceId: CGSSpaceID, _ originFrontPid: pid_t?,
-                            _ frontMode: SLPSMode.RawValue) {
+                            _ siblings: [AXUIElement]) {
         guard FocusIntents.shared.mayProceed(generation) else { return }
         #if DEBUG
         if FocusIntents.shared.consumeRefusalForQa() { return refusedForQa() }
@@ -419,8 +419,9 @@ class Window {
         guard FocusIntents.shared.mayProceed(generation) else { return }
         var psn = ProcessSerialNumber()
         GetProcessForPID(application.pid, &psn)
-        _SLPSSetFrontProcessWithOptions(&psn, cgWindowId!, frontMode)
+        _SLPSSetFrontProcessWithOptions(&psn, cgWindowId!, SLPSMode.userGenerated.rawValue)
         FocusIntents.shared.noteReordered(generation)
+        raiseGroupSiblings(siblings, generation)
         makeKeyAndRaise(generation, &psn)
         restoreOriginSpaceFront(originSpaceId, originFrontPid)
         repairIfSuperseded(generation)
@@ -431,11 +432,24 @@ class Window {
         }
     }
 
-    /// An app grouped per-app (`AppGroupingResolverSpecs.md`) is fronted like ⌘⇥ does: `allWindows` raises
-    /// every window of the process, and `makeKeyAndRaise` then puts this one on top.
-    private func frontProcessMode() -> SLPSMode.RawValue {
-        let groups = AppGroupingResolver.isListed(application.bundleIdentifier, groupedBundleIds: Preferences.groupedAppBundleIds)
-        return groups ? SLPSMode.userGenerated.rawValue | SLPSMode.allWindows.rawValue : SLPSMode.userGenerated.rawValue
+    /// For an app grouped per-app, its other windows in `AppGroupingResolver.raiseOrder`; empty otherwise.
+    private func groupSiblingsToRaise() -> [AXUIElement] {
+        guard AppGroupingResolver.isListed(application.bundleIdentifier, groupedBundleIds: Preferences.groupedAppBundleIds) else { return [] }
+        let siblings = Windows.list.filter { $0.application.pid == application.pid && $0 !== self && $0.axUiElement != nil }
+        let visibleSpaces = Set(Spaces.visibleSpaces)
+        let order = AppGroupingResolver.raiseOrder(siblings.map {
+            GroupSibling(id: $0.id, lastFocusOrder: $0.lastFocusOrder, isMinimized: $0.isMinimized, isInactiveTab: $0.isTabbed,
+                isOnVisibleSpace: $0.isOnAllSpaces || !visibleSpaces.isDisjoint(with: $0.spaceIds))
+        })
+        let elements = Dictionary(uniqueKeysWithValues: siblings.map { ($0.id, $0.axUiElement!) })
+        return order.compactMap { elements[$0] }
+    }
+
+    private func raiseGroupSiblings(_ siblings: [AXUIElement], _ generation: FocusGeneration) {
+        for element in siblings {
+            guard FocusIntents.shared.mayProceed(generation) else { return }
+            _ = raise(element, generation)
+        }
     }
 
     private func hearWhereFocusLanded() {

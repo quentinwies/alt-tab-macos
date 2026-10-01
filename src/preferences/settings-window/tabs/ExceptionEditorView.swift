@@ -195,6 +195,11 @@ class ExceptionEditorView: NSView {
         groupSwitch.translatesAutoresizingMaskIntoConstraints = false
         groupSwitch.target = self
         groupSwitch.action = #selector(groupChanged(_:))
+        // `makeRow` makes the control hug at .required; `Switch` (an NSButton hosting an NSSwitch) has no
+        // intrinsic size of its own, so it collapsed and the NSSwitch drawn over it got no clicks.
+        let size = groupSwitch.switchButton.fittingSize
+        groupSwitch.widthAnchor.constraint(equalToConstant: size.width).isActive = true
+        groupSwitch.heightAnchor.constraint(equalToConstant: size.height).isActive = true
         return makeRow(label: label, control: groupSwitch)
     }
 
